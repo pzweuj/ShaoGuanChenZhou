@@ -1,22 +1,25 @@
 import Image from "next/image";
-import type { Pic, Stop } from "@/lib/content";
+import type { Photo, Stop } from "@/lib/content";
 import { amapDrive, amapMarker, amapSearch } from "@/lib/gcj02";
-import { Sketch } from "./Sketch";
 
-export function Picture({ pic, priority = false }: { pic: Pic; priority?: boolean }) {
-  if (pic.kind === "sketch") {
-    return <Sketch id={pic.sketch} label={pic.alt} />;
-  }
-
+export function Picture({
+  pic,
+  priority = false,
+  hero = false,
+}: {
+  pic: Photo;
+  priority?: boolean;
+  hero?: boolean;
+}) {
   return (
-    <figure className="photo">
+    <figure className={hero ? "photo photo-hero" : "photo"}>
       <Image
         src={pic.src}
         alt={pic.alt}
         width={pic.width}
         height={pic.height}
         priority={priority}
-        sizes="(max-width: 520px) 100vw, 480px"
+        sizes={hero ? "(max-width: 520px) 100vw, 512px" : "(max-width: 520px) 92vw, 460px"}
         style={{ width: "100%", height: "auto" }}
       />
       <figcaption>
@@ -38,6 +41,17 @@ export function stopHref(stop: Stop) {
   }
   if (stop.action === "drive") return amapDrive(stop.lon, stop.lat, stop.keyword);
   return amapMarker(stop.lon, stop.lat, stop.keyword);
+}
+
+export function AmapSearch({ keyword }: { keyword: string }) {
+  return (
+    <a className="plane" href={amapSearch(keyword)} target="_blank" rel="noreferrer" aria-label="高德搜索">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.4 11.3 20.6 4.2 14.4 20.8 11.2 13.4 3.4 11.3Z" />
+        <path d="M11.2 13.4 20.6 4.2" />
+      </svg>
+    </a>
+  );
 }
 
 export function stopVerb(stop: Stop) {

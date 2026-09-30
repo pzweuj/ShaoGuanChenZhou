@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   dayStatus,
   days,
+  defaultTab,
   shanghaiToday,
   tabs,
   type TabId,
@@ -28,13 +29,12 @@ function isTab(value: string | null): value is TabId {
   return tabs.some((tab) => tab.id === value);
 }
 
-export function TripApp() {
+export function TripApp({ mapboxToken }: { mapboxToken: string }) {
   const params = useSearchParams();
   const router = useRouter();
   const today = shanghaiToday();
-  const todayId = days.find((day) => day.date === today)?.id;
   const requested = params.get("day");
-  const active: TabId = isTab(requested) ? requested : (todayId ?? "overview");
+  const active: TabId = isTab(requested) ? requested : defaultTab(today);
   const index = tabs.findIndex((tab) => tab.id === active);
   const day = days.find((item) => item.id === active);
   const rawChecks = useSyncExternalStore(subscribeChecks, readChecks, () => "{}");
@@ -45,13 +45,6 @@ export function TripApp() {
   } catch {
     done = {};
   }
-
-  useEffect(() => {
-    document.getElementById(`tab-${active}`)?.scrollIntoView({
-      inline: "center",
-      block: "nearest",
-    });
-  }, [active]);
 
   const setDay = useCallback(
     (id: TabId) => {
@@ -92,26 +85,26 @@ export function TripApp() {
         ["notes", "注意"],
       ]
     : [
-        ["fixes", "修正"],
         ["charge", "补能"],
         ["weather", "天气"],
         ["todo", "待办"],
       ];
 
-  const prev = index > 0 ? tabs[index - 1] : null;
-  const next = index < tabs.length - 1 ? tabs[index + 1] : null;
-
   return (
     <div className="app">
       <header className="top">
         <div className="brand">
-          <strong>粤北到湘南</strong>
+          <div>
+            <p className="eyebrow">黄埔出发 · 五日</p>
+            <strong>粤北到湘南</strong>
+          </div>
           <span>10/2–10/6</span>
         </div>
         <nav className="tabs" role="tablist" aria-label="日期">
           {tabs.map((tab) => {
             const match = days.find((item) => item.id === tab.id);
             const status = match ? dayStatus(match.date, today) : "";
+            const [when, ...where] = tab.label.split(" ");
             return (
               <button
                 key={tab.id}
@@ -121,8 +114,8 @@ export function TripApp() {
                 aria-selected={tab.id === active}
                 onClick={() => setDay(tab.id)}
               >
-                {tab.label}
-                {status ? <small>{status}</small> : null}
+                <b>{when}</b>
+                <small>{status || where.join(" ") || "五日"}</small>
               </button>
             );
           })}
@@ -135,16 +128,13 @@ export function TripApp() {
           ))}
         </nav>
       </header>
-      <main>{day ? <DayView day={day} /> : <Overview done={done} onToggle={toggle} />}</main>
-      <nav className="thumb" aria-label="前后天">
-        <button type="button" disabled={!prev} onClick={() => prev && setDay(prev.id)}>
-          上一天
-        </button>
-        <strong>{tabs[index]?.label}</strong>
-        <button type="button" disabled={!next} onClick={() => next && setDay(next.id)}>
-          下一天
-        </button>
-      </nav>
+      <main key={active}>
+        {day ? (
+          <DayView day={day} mapboxToken={mapboxToken} />
+        ) : (
+          <Overview done={done} onToggle={toggle} onOpen={setDay} mapboxToken={mapboxToken} />
+        )}
+      </main>
     </div>
   );
 }

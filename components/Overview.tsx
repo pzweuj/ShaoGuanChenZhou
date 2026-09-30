@@ -2,14 +2,12 @@ import {
   chargeOverview,
   checks,
   days,
-  fixes,
   packing,
   weatherOverview,
   type Stop,
 } from "@/lib/content";
-import { amapSearch } from "@/lib/gcj02";
 import { cutLine, routeLines } from "@/lib/routes";
-import { Picture, StopList } from "./Media";
+import { AmapSearch, StopList } from "./Media";
 import { RouteMap } from "./RouteMap";
 
 function take(dayId: string, stopId: string) {
@@ -20,9 +18,13 @@ function take(dayId: string, stopId: string) {
 export function Overview({
   done,
   onToggle,
+  onOpen,
+  mapboxToken,
 }: {
   done: Record<string, boolean>;
   onToggle: (id: string) => void;
+  onOpen: (id: (typeof days)[number]["id"]) => void;
+  mapboxToken: string;
 }) {
   const ordered = [
     take("d1", "huangpu"),
@@ -64,28 +66,22 @@ export function Overview({
 
   return (
     <article className="day">
-      <p className="kicker">10/2–10/6 · 黄埔出发</p>
+      <p className="kicker">五日路书 · 黄埔出发</p>
       <h1>粤北到湘南</h1>
       <p className="lede">
-        两晚韶关之外，电都补在住的地方和中午那一顿。高椅岭下午进、天黑前出。博物馆国庆照常开。
+        两晚韶关之外，电都补在住的地方和中午那一顿。高椅岭中午到，晚上进东江湖。博物馆国庆照常开。
       </p>
-
-      <div className="rail preview">
-        <Picture pic={days[0].lead} priority />
-        <Picture pic={days[1].lead} />
-        <Picture pic={days[2].lead} />
-        <Picture pic={days[3].lead} />
-      </div>
-
-      <section id="fixes" className="block">
-        <h2>三处修正</h2>
-        {fixes.map((item) => (
-          <article key={item.title} className="card">
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </article>
+      <ol className="day-index">
+        {days.map((day) => (
+          <li key={day.id}>
+            <button type="button" onClick={() => onOpen(day.id)}>
+              <span>{day.date.slice(5).replace("-", "/")}</span>
+              <strong>{day.overview ?? day.title}</strong>
+              <small>{day.weather}</small>
+            </button>
+          </li>
         ))}
-      </section>
+      </ol>
 
       <section id="map" className="block">
         <h2>全程</h2>
@@ -107,6 +103,7 @@ export function Overview({
                   },
                 ],
               )}
+          token={mapboxToken}
         />
         <StopList scope="overview" stops={ordered} />
         <p className="source">
@@ -117,19 +114,17 @@ export function Overview({
       <section id="charge" className="block">
         <h2>补能</h2>
         {chargeOverview.map((item) => (
-          <article key={item.title} className="card">
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-            {item.phone && item.phoneText ? (
-              <a className="btn" href={item.phone}>
-                {item.phoneText}
-              </a>
-            ) : null}
-            {item.search ? (
-              <a className="btn ghost" href={amapSearch(item.search)} target="_blank" rel="noreferrer">
-                高德搜索
-              </a>
-            ) : null}
+          <article key={item.title} className="card aside">
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              {item.phone && item.phoneText ? (
+                <a className="btn" href={item.phone}>
+                  {item.phoneText}
+                </a>
+              ) : null}
+            </div>
+            {item.search ? <AmapSearch keyword={item.search} /> : null}
           </article>
         ))}
       </section>

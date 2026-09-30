@@ -1,7 +1,7 @@
 import type { DayPlan } from "@/lib/content";
 import { weekday } from "@/lib/content";
 import { cutLine, routeLines } from "@/lib/routes";
-import { Picture, StopList } from "./Media";
+import { AmapSearch, Picture, StopList } from "./Media";
 import { RouteMap, type MapPin } from "./RouteMap";
 
 function pinsOf(stops: DayPlan["stops"]): MapPin[] {
@@ -21,15 +21,33 @@ function pinsOf(stops: DayPlan["stops"]): MapPin[] {
   );
 }
 
-export function DayView({ day }: { day: DayPlan }) {
+function placeName(tab: string) {
+  return tab.split(" ").slice(1).join(" ");
+}
+
+export function DayView({ day, mapboxToken }: { day: DayPlan; mapboxToken: string }) {
   const line = day.cutAt ? cutLine(routeLines[day.route], day.cutAt) : routeLines[day.route];
+  const place = placeName(day.tab);
 
   return (
     <article className="day">
-      <Picture pic={day.lead} priority />
-      <p className="kicker">
-        {day.date.slice(5)} {weekday(day.date)}
-      </p>
+      {day.lead ? (
+        <Picture pic={day.lead} priority hero />
+      ) : (
+        <div className="plate">
+          <p className="plate-date">
+            {day.date.slice(5).replace("-", "/")} {weekday(day.date)}
+          </p>
+          <p className="plate-place">{place || day.title}</p>
+          <p className="plate-note">这一天没有实拍。</p>
+        </div>
+      )}
+      {day.lead ? (
+        <p className="kicker">
+          {day.date.slice(5).replace("-", "/")} {weekday(day.date)}
+          {place ? ` · ${place}` : ""}
+        </p>
+      ) : null}
       <h1>{day.title}</h1>
       <p className="lede">{day.summary}</p>
       <ul className="facts">
@@ -54,6 +72,7 @@ export function DayView({ day }: { day: DayPlan }) {
           caption={day.mapCaption}
           lines={[{ points: line }]}
           pins={pinsOf(day.stops)}
+          token={mapboxToken}
         />
         <StopList scope={day.id} stops={day.stops} />
         {day.inset ? (
@@ -71,6 +90,7 @@ export function DayView({ day }: { day: DayPlan }) {
                 },
               ]}
               pins={pinsOf(day.inset.stops)}
+              token={mapboxToken}
             />
             <StopList scope={`${day.id}-inset`} stops={day.inset.stops} />
           </div>
@@ -115,44 +135,37 @@ export function DayView({ day }: { day: DayPlan }) {
 
       <section id="food" className="block">
         <h2>吃</h2>
-        <p>{day.foodIntro}</p>
+        <p className="intro">{day.foodIntro}</p>
         {day.dishes.length > 0 ? (
-          <div className="rail">
+          <ul className="menu">
             {day.dishes.map((dish) => (
-              <article key={dish.name} className="dish">
-                {dish.pic ? <Picture pic={dish.pic} /> : null}
+              <li key={dish.name}>
                 <h3>{dish.name}</h3>
-                <p className={`tag ${dish.spicy === "ok" ? "eat" : dish.spicy === "ask" ? "charge" : "hard"}`}>
+                <span className={`spice ${dish.spicy}`}>
                   {dish.spicy === "ok" ? "可以点" : dish.spicy === "ask" ? "说一声免辣" : "鲜辣，只试味"}
-                </p>
+                </span>
+                {dish.pic ? <Picture pic={dish.pic} /> : null}
                 <p>{dish.note}</p>
-              </article>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : null}
       </section>
 
       <section id="notes" className="block">
         <h2>补能和注意</h2>
         {day.charges.map((item) => (
-          <article key={item.title} className="card">
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-            {item.phone && item.phoneText ? (
-              <a className="btn" href={item.phone}>
-                {item.phoneText}
-              </a>
-            ) : null}
-            {item.search ? (
-              <a
-                className="btn ghost"
-                href={`https://uri.amap.com/search?keyword=${encodeURIComponent(item.search)}&callnative=1`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                高德搜索
-              </a>
-            ) : null}
+          <article key={item.title} className="card aside">
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              {item.phone && item.phoneText ? (
+                <a className="btn" href={item.phone}>
+                  {item.phoneText}
+                </a>
+              ) : null}
+            </div>
+            {item.search ? <AmapSearch keyword={item.search} /> : null}
           </article>
         ))}
         <ul className="notes">

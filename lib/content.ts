@@ -1,5 +1,3 @@
-import type { SketchId } from "@/components/Sketch";
-
 export type Photo = {
   kind: "photo";
   src: string;
@@ -12,13 +10,7 @@ export type Photo = {
   note?: string;
 };
 
-export type Drawing = {
-  kind: "sketch";
-  sketch: SketchId;
-  alt: string;
-};
-
-export type Pic = Photo | Drawing;
+export type Pic = Photo;
 
 export type Stop = {
   id: string;
@@ -62,11 +54,12 @@ export type DayPlan = {
   tab: string;
   bar: string;
   title: string;
+  overview?: string;
   summary: string;
   sleep: string;
   weather: string;
   distance: string;
-  lead: Pic;
+  lead: Pic | null;
   mapCaption: string;
   route: DayId;
   cutAt?: { lon: number; lat: number };
@@ -130,9 +123,53 @@ const tofu: Photo = {
   note: "深圳馆子的实拍，用来认菜，不是韶关或郴州某一家店。",
 };
 
-function sketch(sketch: SketchId, alt: string): Drawing {
-  return { kind: "sketch", sketch, alt };
-}
+const gaoyiling: Photo = {
+  kind: "photo",
+  src: "/photos/gaoyiling.webp",
+  width: 1280,
+  height: 960,
+  alt: "高椅岭丹霞，绿色山丘和深色岩层",
+  artist: "Huangdan2060",
+  license: "CC0",
+  href: "https://commons.wikimedia.org/wiki/File:Mount_Gaoyiling_in_Chenzhou,_Hunan,_China5.jpg",
+  note: "2018年6月拍的高椅岭。用来认景，不是10/3当天。",
+};
+
+const museumPhoto: Photo = {
+  kind: "photo",
+  src: "/photos/museum.webp",
+  width: 1280,
+  height: 691,
+  alt: "郴州市博物馆正门",
+  artist: "FradonStar",
+  license: "CC BY 4.0",
+  href: "https://commons.wikimedia.org/wiki/File:%E9%83%B4%E5%B7%9E%E5%B8%82%E5%8D%9A%E7%89%A9%E9%A6%86_20250710_01.jpg",
+  note: "2025年7月的新馆正门。",
+};
+
+const yuhouPhoto: Photo = {
+  kind: "photo",
+  src: "/photos/yuhou.webp",
+  width: 1280,
+  height: 853,
+  alt: "郴州裕后街沿河的白墙黛瓦",
+  artist: "Auongkinghe",
+  license: "CC BY-SA 4.0",
+  href: "https://commons.wikimedia.org/wiki/File:%E8%A3%95%E5%90%8E%E9%87%8C_20240125.jpg",
+  note: "2024年1月拍的裕后里，和西岸古街隔江。当天不会有雪。",
+};
+
+const yangtianPhoto: Photo = {
+  kind: "photo",
+  src: "/photos/yangtian.webp",
+  width: 1067,
+  height: 800,
+  alt: "仰天湖大草原入口，山坡上有一座风车",
+  artist: "百度百科",
+  license: "词条配图",
+  href: "https://baike.baidu.com/item/%E9%83%B4%E5%B7%9E%E5%B8%82%E4%BB%B0%E5%A4%A9%E6%B9%96%E5%A4%A7%E8%8D%89%E5%8E%9F%E6%99%AF%E5%8C%BA/64930992",
+  note: "百科概要图，门口写着仰天湖大草原。用来认景，不是10/5当天。",
+};
 
 const huangpu: Stop = {
   id: "huangpu",
@@ -216,7 +253,7 @@ const qingshi: Stop = {
 const southGate: Stop = {
   id: "south-gate",
   name: "高椅岭南门售票处",
-  note: "OSM 有「高椅岭景区南门售票处」。门票 95 元，含观光车，提前一天网上买。",
+  note: "OSM 有「高椅岭景区南门售票处」。门票 92 元，提前一天网上买。",
   lon: 113.1605332,
   lat: 25.9649352,
   action: "drive",
@@ -226,12 +263,12 @@ const southGate: Stop = {
 const bailang: Stop = {
   id: "bailang",
   name: "东江湖方位 · 白廊镇",
-  note: "白廊镇在东江湖东岸，只用来看方向。民宿没有店名，不要把导航终点设在这里。",
+  note: "白廊镇在东江湖东岸，只用来看方向。住宿在东江街道捂洞村新屋头组，不要把导航终点设在这个点上。",
   lon: 113.3945702,
   lat: 25.9196939,
   hollow: true,
   action: "search",
-  keyword: "东江湖游客中心",
+  keyword: "东江街道捂洞村新屋头组",
 };
 
 const museum: Stop = {
@@ -325,19 +362,16 @@ const shaoguanFood: Dish[] = [
     name: "薄皮蒸饺",
     spicy: "ok",
     note: "蔡玉皎薄皮蒸饺。认这笼蒸饺就行。",
-    pic: sketch("dumpling", "一笼薄皮蒸饺"),
   },
   {
     name: "冷水猪肚",
     spicy: "ok",
     note: "不辣，适合直接点。",
-    pic: sketch("stomach", "一盘冷水猪肚"),
   },
   {
     name: "姜葱鸡",
     spicy: "ok",
     note: "姜和葱为主，不走辣。",
-    pic: sketch("chicken", "一盘姜葱鸡"),
   },
   {
     name: "客家酿豆腐",
@@ -349,58 +383,29 @@ const shaoguanFood: Dish[] = [
     name: "冬瓜鸭子汤",
     spicy: "ok",
     note: "汤，不辣。",
-    pic: sketch("soup", "一碗冬瓜鸭子汤"),
   },
   {
     name: "山坑螺",
     spicy: "ask",
     note: "先说免辣。",
-    pic: sketch("snail", "一锅山坑螺"),
   },
   {
     name: "芝麻糊",
     spicy: "ok",
     note: "万家乐芝麻糊，当甜品。",
-    pic: sketch("sesame", "一碗芝麻糊"),
   },
   {
     name: "利源居的面",
     spicy: "ask",
     note: "青石街老字号。面可以要清汤，南雄菜普遍辣，别的店也先说免辣。",
-    pic: sketch("noodle", "一碗清汤面"),
   },
 ];
 
-const chenzhouFood: Dish[] = [
-  {
-    name: "白露塘杀猪粉",
-    spicy: "ask",
-    note: "早餐别点栖凤渡鱼粉，那碗很辣。杀猪粉要说不辣。",
-    pic: sketch("riceNoodle", "一碗不辣的杀猪粉"),
-  },
-  {
-    name: "清汤鱼粉",
-    spicy: "ok",
-    note: "早餐的稳妥选择。",
-    pic: sketch("fishNoodle", "一碗清汤鱼粉"),
-  },
-  {
-    name: "米饺",
-    spicy: "ok",
-    note: "早餐或小吃都行。",
-    pic: sketch("mijiao", "三只米饺"),
-  },
-  {
-    name: "东江虹鳟一鱼三吃",
-    spicy: "ok",
-    note: "刺身、椒盐骨、鱼汤，基本不辣。正餐最适合你们。三文鱼也是这个吃法。",
-    pic: sketch("trout", "虹鳟刺身、椒盐和鱼汤"),
-  },
+const chenzhouDinner: Dish[] = [
   {
     name: "柴火鱼",
     spicy: "ask",
     note: "可以做不辣。",
-    pic: sketch("grilled", "一条柴火鱼"),
   },
   {
     name: "酿豆腐",
@@ -412,19 +417,39 @@ const chenzhouFood: Dish[] = [
     name: "坛子肉",
     spicy: "ok",
     note: "酱香为主，不靠辣。",
-    pic: sketch("jar", "一坛坛子肉"),
+  },
+  {
+    name: "烧鸡公",
+    spicy: "hot",
+    note: "鲜辣。想尝就微辣，或只点一份试味。",
+  },
+];
+
+const chenzhouMorning: Dish[] = [
+  {
+    name: "白露塘杀猪粉",
+    spicy: "ask",
+    note: "早餐别点栖凤渡鱼粉，那碗很辣。杀猪粉要说不辣。",
+  },
+  {
+    name: "清汤鱼粉",
+    spicy: "ok",
+    note: "早餐的稳妥选择。",
+  },
+  {
+    name: "米饺",
+    spicy: "ok",
+    note: "早餐或小吃都行。",
   },
   {
     name: "糖油粑粑",
     spicy: "ok",
-    note: "甜口小吃。",
-    pic: sketch("sugar", "一块糖油粑粑"),
+    note: "甜口小吃，留到晚上裕后街。",
   },
   {
     name: "灯盏糍粑",
     spicy: "ok",
     note: "糯米小吃。夜市可以逛和平路、裕后街、兴旺步行街。",
-    pic: sketch("lamp", "一块灯盏糍粑"),
   },
 ];
 
@@ -435,6 +460,7 @@ export const days: DayPlan[] = [
     tab: "10/2 韶关",
     bar: "10/2 韶关",
     title: "南华寺，晚上过江",
+    overview: "南华寺，下午百年东街",
     summary: "黄埔满电出发，曲江下高速。中午之前看完南华寺，马坝吃饭，下午进酒店充电，傍晚再过江。",
     sleep: "7天（韶关百年东街西河客运站店），武江区惠民南路 2 号向阳大厦。免费停车场和充电车位。酒店不在百年东街里面。",
     weather: "韶关有小雨。带一件薄外套，寺里石阶会滑。",
@@ -460,7 +486,6 @@ export const days: DayPlan[] = [
         time: "10:15–12:30",
         title: "南华寺",
         detail: "中轴线两小时够。想吃素斋就赶 11:30 的午斋。门票 20 元，停车场免费。",
-        pic: nanhua,
         tags: [{ tone: "hard", label: "素斋 11:30" }],
       },
       {
@@ -472,7 +497,7 @@ export const days: DayPlan[] = [
       {
         time: "14:15",
         title: "到酒店，入住午休",
-        detail: "先问前台：充电桩怎么用、要不要登记车牌。到店当天打 0751-8178886，确认桩能用、没被油车占。",
+        detail: "先问前台：充电桩怎么用、要不要登记车牌，确认桩能用、没被油车占。",
         tags: [{ tone: "charge", label: "先确认桩" }],
       },
       {
@@ -488,8 +513,6 @@ export const days: DayPlan[] = [
       {
         title: "今晚这充是全段最关键的",
         text: "过夜慢充或快充都算一整晚。车停在酒店免费停车场。第二天去高椅岭，就靠这一晚补满。",
-        phone: "tel:07518178886",
-        phoneText: "拨 0751-8178886",
         search: "韶关惠民南路2号向阳大厦",
       },
     ],
@@ -504,12 +527,13 @@ export const days: DayPlan[] = [
     tab: "10/3 高椅岭",
     bar: "10/3 高椅岭",
     title: "下午进山，天黑前下山",
+    overview: "中午抵达高椅岭，晚上进入东江湖",
     summary: "早上退房去高椅岭南门。中午在景区外吃饭并顺路快充，下午进园，出园再去东江湖。",
-    sleep: "东江湖民宿。你没有给店名，页面也不编。导航用订单上的地址。",
+    sleep: "东江街道捂洞村新屋头组。导航搜这个地址。",
     weather: "韶关到资兴这一带有小雨。龙脊背陡、几乎没遮阴，鞋要抓地，带雨具、水和帽子。",
     distance: "韶关到高椅岭南门大约 2.5 小时，高速为主。出园后再开约 50 分钟到民宿。",
-    lead: sketch("gaoyiling", "高椅岭丹霞和栈道"),
-    mapCaption: "实线只画到南门。白廊镇那个空心点在东江湖东岸，用来看湖在景区东边，不是民宿大门。",
+    lead: gaoyiling,
+    mapCaption: "实线只画到南门。白廊镇那个空心点在东江湖东岸，用来看湖在景区东边，不是捂洞村新屋头组。",
     route: "d2",
     cutAt: { lon: southGate.lon!, lat: southGate.lat! },
     stops: [hotel, southGate, bailang],
@@ -536,13 +560,13 @@ export const days: DayPlan[] = [
         time: "14:00–17:30",
         title: "进园，天黑前下山",
         detail: "售票和入园到 17:20，闭园 19:00。山顶没有路灯，日落后尽快出园。不要 18:40 还在山上。全程大约 2.5–3 小时。",
-        pic: sketch("gaoyiling", "高椅岭栈道"),
+        pic: gaoyiling,
         tags: [{ tone: "hard", label: "17:20 停止入园" }],
       },
       {
         time: "18:20",
         title: "出园去民宿",
-        detail: "开车约 50 分钟。终点用订单地址，或先搜「东江湖游客中心」。",
+        detail: "开车约 50 分钟。导航搜「东江街道捂洞村新屋头组」。",
       },
       {
         time: "19:30 后",
@@ -581,7 +605,7 @@ export const days: DayPlan[] = [
     weather: "小雨转阴。雾会有，但偏薄，光线平，属于能看到、不一定出片。真正的晴天窗口在 10/5–10/6。",
     distance: "民宿到郴州大约 40 分钟。博物馆离五岭广场大约 9 公里。",
     lead: fog,
-    mapCaption: "起点仍用白廊镇代表东江湖一带，实际从民宿出发。星河大酒店没有唯一公开门牌，搜店名。",
+    mapCaption: "起点仍用白廊镇代表东江湖一带，实际从东江街道捂洞村新屋头组出发。星河大酒店没有唯一公开门牌，搜店名。",
     route: "d3",
     cutAt: { lon: wuling.lon!, lat: wuling.lat! },
     stops: [bailang, museum, wuling, xinghe],
@@ -598,7 +622,7 @@ export const days: DayPlan[] = [
       {
         time: "5:20",
         title: "起床去游客中心",
-        detail: "让民宿送，或打车。大约 2 公里，几分钟。买精品线，旺季约 85 元，含小东江、龙景峡谷和大巴。",
+        detail: "让民宿送，或打车。大约 2 公里，几分钟。买观湖线，78.8 元。",
         tags: [{ tone: "hard", label: "早起" }],
       },
       {
@@ -628,18 +652,18 @@ export const days: DayPlan[] = [
         time: "14:00–16:30",
         title: "郴州市博物馆",
         detail: "10/4 是星期日。国庆 10 月 1 日到 7 日（或至 8 日）9:00–17:00 开放，16:30 停止入馆，不必卡周一闭馆。公众号「郴州市博物馆」预约，15:30 前进馆。",
-        pic: sketch("museum", "博物馆外观示意"),
+        pic: museumPhoto,
         tags: [{ tone: "hard", label: "16:30 停止入馆" }],
       },
       {
         time: "17:30–20:30",
         title: "五岭广场到五岭阁",
-        detail: "地下商场，兴旺步行街，五岭阁看夜景。晚餐吃杀猪粉或柴火鱼，都要说不辣。",
+        detail: "地下商场，兴旺步行街，五岭阁看夜景。晚餐吃柴火鱼或酿豆腐，都要说不辣。烧鸡公只试味。",
         tags: [{ tone: "eat", label: "吃饭" }],
       },
     ],
-    foodIntro: "正餐优先回市区。东江湖边上的馆子溢价高。下面按不太能吃辣筛过。",
-    dishes: chenzhouFood,
+    foodIntro: "正餐优先回市区。东江湖边上的馆子溢价高。下面是今晚在市区吃的，按不太能吃辣来筛。",
+    dishes: chenzhouDinner,
     charges: [
       {
         title: "星河可能没有桩",
@@ -648,8 +672,8 @@ export const days: DayPlan[] = [
       },
     ],
     notes: [
-      "精品线门票提前一天买。",
-      "烧鸡公、胖婆捆鸭、临武鸭是鲜辣口。想尝就微辣，或只点一份试味。",
+      "观湖线提前一天买。",
+      "胖婆捆鸭、临武鸭是鲜辣口，不单列。想尝就微辣，或只点一份试味。",
     ],
   },
   {
@@ -662,7 +686,7 @@ export const days: DayPlan[] = [
     sleep: "还是星河大酒店。车继续停着充电。",
     weather: "多云转晴。资兴清晨 13–14℃，仰天湖海拔 1314 米，风大，体感更低。短袖加防风外套或冲锋衣，雨具、防晒、防滑鞋都带上。",
     distance: "从市区上山不用自己开车。裕后街离五岭广场大约 4–5 公里。",
-    lead: sketch("yangtian", "仰天湖草原"),
+    lead: yangtianPhoto,
     mapCaption: "这天不开自己的车。线只表示五岭广场和仰天湖的方位，下午按景区的车回来。",
     route: "d4",
     cutAt: { lon: yangtian.lon!, lat: yangtian.lat! },
@@ -701,7 +725,6 @@ export const days: DayPlan[] = [
         time: "早上",
         title: "方案 A：832 路",
         detail: "打车到天龙汽车站。国庆流水发班，满 26 人发车。电话 0735-8183337。提前 30 分钟到站。玩完原路返回。",
-        pic: sketch("yangtian", "仰天湖草原"),
         tags: [{ tone: "hard", label: "提前 30 分钟" }],
       },
       {
@@ -712,7 +735,8 @@ export const days: DayPlan[] = [
       {
         time: "8:00–18:00",
         title: "景区",
-        detail: "门票约 98–120 元，含观光车。提前一天在「仰天湖大草原」公众号，或美团、携程订，订票即预约。山上吃的贵且一般，自带水和干粮。",
+        detail: "直通车 169 元，含门票。提前一天订。山上吃的贵且一般，自带水和干粮。",
+        pic: yangtianPhoto,
       },
       {
         time: "17:00 前",
@@ -724,11 +748,11 @@ export const days: DayPlan[] = [
         time: "晚上",
         title: "裕后街",
         detail: "一江两岸亮灯最出片，戏台常有湘昆。",
-        pic: sketch("yuhou", "裕后街和桥"),
+        pic: yuhouPhoto,
       },
     ],
-    foodIntro: "山上自带水和干粮。下面这些留到市区和裕后街，仍然按不辣来点。",
-    dishes: chenzhouFood,
+    foodIntro: "早上在市区吃粉。山上自带水和干粮。晚上到裕后街再吃小吃，仍然按不辣来点。",
+    dishes: chenzhouMorning,
     charges: [
       {
         title: "上山前确认班次",
@@ -758,7 +782,7 @@ export const days: DayPlan[] = [
     sleep: "今晚到家。",
     weather: "多云转晴。回程比来的时候好开，还是留足余量。",
     distance: "郴州到韶关约 163 公里、2 小时出头。韶关到黄埔约 230 公里、2.5–3 小时。",
-    lead: sketch("highway", "山里的高速公路"),
+    lead: null,
     mapCaption: "黄埔终点仍是区人民政府，到家前改成你们的小区。曲江服务区和市区快充二选一，不必两个都停。",
     route: "d5",
     stops: [
@@ -823,28 +847,20 @@ export const tabs = [
 
 export type TabId = (typeof tabs)[number]["id"];
 
-export const checks = [
-  { id: "gaoyiling-ticket", label: "高椅岭门票已买（95 元，含观光车）" },
-  { id: "dongjiang-ticket", label: "东江湖精品线已买（旺季约 85 元）" },
-  { id: "yangtian-ticket", label: "仰天湖门票已订（约 98–120 元，含观光车）" },
-  { id: "museum", label: "郴州市博物馆已在公众号预约" },
-  { id: "charger-call", label: "已打 0751-8178886，确认 7 天的桩能用" },
-  { id: "yangtian-bus", label: "9/30–10/2 已确认仰天湖怎么上山" },
-];
+export function defaultTab(today: string): TabId {
+  return days.find((day) => day.date === today)?.id ?? "overview";
+}
 
-export const fixes = [
-  {
-    title: "酒店不在百年东街里面",
-    text: "7天在武江区惠民南路 2 号向阳大厦，西河客运站旁，有免费停车场和充电车位。百年东街在浈江对岸，步行 30 分钟以上，打车约 10 分钟。",
-  },
-  {
-    title: "博物馆国庆照常开",
-    text: "10/4 是星期日。馆方历年国庆是 10 月 1 日到 7 日（或至 8 日）9:00–17:00，16:30 停止入馆。周一闭馆不影响这天下午，仍要在公众号预约，15:30 前进馆。",
-  },
-  {
-    title: "高椅岭按 2026 年新规",
-    text: "4 月 30 日起，售票和入园 7:00–17:20，闭园 19:00。山顶没有路灯。这天是下午进、看日落光影、天黑前下山。",
-  },
+export const checks = [
+  { id: "id-card", label: "身份证、驾驶证" },
+  { id: "clothes", label: "衣服：短袖，另加防风外套或冲锋衣" },
+  { id: "rain", label: "雨具、防晒、防滑鞋" },
+  { id: "snack", label: "高椅岭和仰天湖各备一瓶水和一点干粮" },
+  { id: "nanhua-ticket", label: "南华寺门票已买（20 元）" },
+  { id: "gaoyiling-ticket", label: "高椅岭门票已买（92 元）" },
+  { id: "dongjiang-ticket", label: "东江湖观湖线已买（78.8 元）" },
+  { id: "yangtian-ticket", label: "仰天湖直通车已订（169 元，含门票）" },
+  { id: "museum", label: "郴州市博物馆已在公众号预约" },
 ];
 
 export const chargeOverview: Charge[] = [
@@ -855,8 +871,6 @@ export const chargeOverview: Charge[] = [
   {
     title: "D1 晚 · 韶关 7 天",
     text: "全段最关键的一充。过夜慢充或快充都算一整晚。",
-    phone: "tel:07518178886",
-    phoneText: "拨 0751-8178886",
     search: "韶关惠民南路2号向阳大厦",
   },
   {
